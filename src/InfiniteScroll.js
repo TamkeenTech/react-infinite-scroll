@@ -1,19 +1,68 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import axios from 'axios'
+
 const scrollableWrapperKey = 'infinite-scroll-wrapper';
 class InfiniteScroll extends React.Component {
 
+  state = {
+    page: this.asyncConfigs.page,
+    pageSize: this.asyncConfigs.pageSize,
+    isRequestLoading: false,
+    error: null
+  };
+
   componentDidMount() {
     this.scrollableWrapper.addEventListener('scroll', this.onScroll);
-    // Todo
-    // async = {
-    //   endpoint: '',
-    //   totalCountProp: '',
-    //   dataTargetKey: 'items',
-    //   page: 0,
-    //   pageSize: 10, 
-    // }
+
+    // Async handler
+    if(this.isAsync) {
+      this.fetchData();
+    }
+  }
+
+  fetchData() {
+    const { page, pageSize } = this.state;
+    const { debug } = this.props;
+    const { 
+      configs, 
+      dataTargetKey, 
+      query, 
+      pageProp,
+      pageSizeProp 
+    } = this.asyncConfigs;
+
+    this.setState({ isRequestLoading: true }, () => {
+      let url = `${configs.url}?${pageProp}=${page}&${pageSizeProp}=${pageSize}`;
+
+      if(query) {
+        url = `${url}&${query}`
+      }
+
+      axios({
+        ...configs,
+        url
+      })
+        .then(res => {
+          if(debug) {
+            console.warn('[Success Response]')
+            console.warn('You are targetting [', dataTargetKey, '] from', res.data,',if you want to target another prop use [ dataTargetKey ]')
+          }
+
+          const data = res.data[dataTargetKey];
+          this.setState({ data})
+        })
+        .catch(({ response }) => {
+          if(debug) {
+            console.error('[Err Response]')
+            console.error('Error is', response)
+          }
+
+          this.setState({ error: response })
+        })
+        .finally(() => this.setState({ isRequestLoading: false }))
+    });
   }
 
   componentWillUnmount() {
@@ -22,20 +71,29 @@ class InfiniteScroll extends React.Component {
 
   onScroll = e => {
     const { isLoading } = this;
+    const { error } = this.state;
     const { onLimitReached, isDataFinished } = this.props;
     const { scrollHeight, scrollTop, clientHeight } = this.scrollableWrapper;
     const offsetBottom = scrollHeight - (scrollTop + clientHeight);
-
+    console.log('isLoading', );
     if(
       (offsetBottom < this.scrollLimit) 
       && 
       !isLoading
       &&
       !isDataFinished
+      && 
+      // to prevent circular fetch in case of error
+      !error 
     ) {
-      this.setState({ isLoading: true }, () => {
-        onLimitReached();
-      });
+
+      if(!this.isAsync) {
+        return onLimitReached();
+      }
+
+      this.setState(prevState => ({
+        page: prevState.page + 1
+      }), () => this.fetchData())
     }
   }
 
@@ -53,19 +111,58 @@ class InfiniteScroll extends React.Component {
   }
 
   get isLoading() {
+    const { isAsync } = this;
     const { isLoading } = this.props;
+    const { isRequestLoading } = this.state;
 
-    return isLoading;
+    return isAsync ? isRequestLoading : isLoading;
+  }
+
+  get asyncConfigs() {
+    const { async } = this.props;
+
+    const enhancedConfigs = {
+      query: '',
+      pageProp: 'page',
+      dataTargetKey: 'items',
+      pageSizeProp: 'pageSize',
+      totalCountProp: 'totalCount',
+
+      page: 0,
+      pageSize: 40,
+      
+    };
+
+    return { 
+      ...enhancedConfigs, 
+      ...async,
+      configs: {
+        method: 'GET',
+        url: '', 
+        ...async.configs
+      },
+    };
+  }
+
+  get isAsync() {
+    const { configs } = this.asyncConfigs;
+
+    return !!configs.url;
   }
 
   render() {
     const { isLoading } = this;
-    const { height, render, loader } = this.props;
+    const { height, render, loader, debug } = this.props;
 
     const wrapperStyle = {
       height,
-      overflow: "scroll",
+      overflow: "auto",
     };
+    console.log('asyncConfigs', this.asyncConfigs, this.isAsync);
+    if(debug) {
+      console.warn('props', this.props);
+      console.warn('state', this.state);
+    }
 
     return(
       <div style={wrapperStyle} id={scrollableWrapperKey}>
@@ -78,6 +175,19 @@ class InfiniteScroll extends React.Component {
 
 InfiniteScroll.propTypes = {
   height: PropTypes.oneOfType([ PropTypes.number, PropTypes.string ]),
+
+  async: PropTypes.shape({
+    configs: PropTypes.object,
+
+    query: PropTypes.string,
+    pageProp: PropTypes.string,
+    pageSizeProp: PropTypes.string,
+    dataTargetKey: PropTypes.string,
+    totalCountProp: PropTypes.string,
+
+    page: PropTypes.number,
+    pageSize: PropTypes.number, 
+  }),
 
   scrollThreshold: PropTypes.number,
 
@@ -96,7 +206,6 @@ InfiniteScroll.defaultProps = {
   height: '100vh',
   // It's used to calculate the distance in which you will fetch the data again using onLimitReached()
   // and triger loading state to show loader
-  // 
   scrollThreshold: 0.2,
   // To show the loader when the limit reached while there is feaching in progress
   isLoading: false,
@@ -105,6 +214,33 @@ InfiniteScroll.defaultProps = {
   isDataFinished: false,
   // Loader indicator
   loader: <h3 style={{color: 'red'}}>isLoading...</h3>,
+  // used to log the state and props
+  debug: false,
+  // It used for advanced usage when ur data and pagination relies on the server 
+  // and you don't want to handle the updation everytime
+  async: {
+    // axios request configs like (method, headers, bearer, ...etc)
+    configs: {
+      method: 'GET',
+      // The endpoint you want to target
+      url: '',
+    },
+    // Key to target the data from response in order to iterate over
+    dataTargetKey: 'items',
+    // total items from server in order to calculate isDataFinished automatically 
+    totalCountProp: 'totalCount',
+    // to add custom query
+    query: '',
+    // initial request page, sometimes it starts from 0 or 1 
+    // it depends on your endpoint configuration
+    page: 0,
+    // number of rows you need per request or per page
+    pageSize: 40,
+    // page prop to send it as a query like, endpoint?page=3
+    pageProp: 'page',
+    // page size prop to send it as a query like, endpoint?page=3&pageSize=20
+    pageSizeProp: 'pageSize',
+  },
   // Alternative for children prop
   render() {},
   // will be fired when 
