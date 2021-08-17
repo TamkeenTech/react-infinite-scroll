@@ -2,6 +2,7 @@ import React from 'react';
 
 import InfiniteScroll from './InfiniteScroll';
 
+// API ==> https://www.pexels.com/api/documentation/
 class App extends React.Component {
 
   state = {
@@ -31,20 +32,24 @@ class App extends React.Component {
           height={500}
           async={{ 
             configs: {
-              url: 'https://pixabay.com/api/'
+              url: 'https://api.pexels.com/v1/curated',
+              headers: {
+                Authorization: ' 563492ad6f91700001000001ea402605e7e54c028f6669cc2db8fbaf'
+              }
             },
-            query: 'key=21237839-acf386e90dbcfa64cab0c353e',
-            dataTargetKey: 'hits',
+            query: 'query=nature',
+            dataTargetKey: 'photos',
+            totalCountProp: 'total_results',
             pageSizeProp: 'per_page',
-            pageSize: 10,
-            page: 1
+            pageSize: 80,
+            page: 1,
            }}
           isLoading={isLoading}
           // isDataFinished={count === 2}
           onLimitReached={this.onLimitReached}
           scrollThreshold={.1}
-          render={() => data.map(item => (
-            <div key={item} style={{ height: 50, border: '1px solid red', marginBottom: 10 }}>{item}</div>
+          render={(response) => response.data.map((item, i) => (
+            <div key={item.photographer + i} style={{ height: 50, border: '1px solid red', marginBottom: 10 }}>{item.photographer}</div>
           ))}
         />
       </React.Fragment>
