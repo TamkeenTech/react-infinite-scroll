@@ -35,16 +35,17 @@ class App extends React.Component {
               url: 'https://api.pexels.com/v1/curated',
               headers: {
                 Authorization: ' 563492ad6f91700001000001ea402605e7e54c028f6669cc2db8fbaf'
-              }
+              },
             },
-            query: 'query=nature',
             dataTargetKey: 'photos',
             totalCountProp: 'total_results',
             pageSizeProp: 'per_page',
             pageSize: 80,
-            page: 1,
+            page: 98,
            }}
           isLoading={isLoading}
+          // inverse
+          debug
           // isDataFinished={count === 2}
           onLimitReached={this.onLimitReached}
           scrollThreshold={.1}

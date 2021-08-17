@@ -30,22 +30,19 @@ class InfiniteScroll extends React.Component {
     const { 
       configs, 
       dataTargetKey, 
-      query, 
       pageProp,
       pageSizeProp,
       totalCountProp
     } = this.asyncConfigs;
 
     this.setState({ isRequestLoading: true }, () => {
-      let url = `${configs.url}?${pageProp}=${page}&${pageSizeProp}=${pageSize}`;
-
-      if(query) {
-        url = `${url}&${query}`
-      }
-
       axios({
         ...configs,
-        url
+        params: { 
+          ...configs.params,
+          [pageProp]: page,
+          [pageSizeProp]: pageSize,
+        }
       })
         .then(res => {
           if(debug) {
@@ -82,10 +79,10 @@ class InfiniteScroll extends React.Component {
     const { error } = this.state;
     const { onLimitReached } = this.props;
     const { scrollHeight, scrollTop, clientHeight } = this.scrollableWrapper;
-    const offsetBottom = scrollHeight - (scrollTop + clientHeight);
-
+    const scrollOffset = scrollHeight - (Math.abs(scrollTop) + clientHeight);
+    
     if(
-      (offsetBottom < this.scrollLimit) 
+      (scrollOffset < this.scrollLimit) 
       && 
       !isLoading
       &&
@@ -162,7 +159,6 @@ class InfiniteScroll extends React.Component {
     const { async } = this.props;
 
     const enhancedConfigs = {
-      query: '',
       pageProp: 'page',
       dataTargetKey: 'items',
       pageSizeProp: 'pageSize',
@@ -192,16 +188,22 @@ class InfiniteScroll extends React.Component {
 
   render() {
     const { isLoading } = this;
-    const { height, render, loader, debug, enableLoader, className } = this.props;
+    const { inverse, height, render, loader, debug, enableLoader, className } = this.props;
 
     const wrapperStyle = {
       height,
       overflow: "auto",
     };
 
+    if(inverse) {
+      wrapperStyle.display = 'flex';
+      wrapperStyle.flexDirection = 'column-reverse';
+    }
+
     if(debug) {
-      console.warn('props', this.props);
-      console.warn('state', this.state);
+      console.warn('[props]', this.props);
+      console.warn('[state]', this.state);
+      console.warn('[distance from the [end of the total content] at which the [onLimitReached] will be triggered based on [scrollThreshold] ] ', this.scrollableWrapper && this.scrollLimit);
     }
 
     return(
@@ -223,7 +225,6 @@ InfiniteScroll.propTypes = {
   async: PropTypes.shape({
     configs: PropTypes.object,
 
-    query: PropTypes.string,
     pageProp: PropTypes.string,
     pageSizeProp: PropTypes.string,
     dataTargetKey: PropTypes.string,
@@ -255,6 +256,8 @@ InfiniteScroll.defaultProps = {
   // It's used to calculate the distance in which you will fetch the data again using onLimitReached()
   // and triger loading state to show loader
   scrollThreshold: 0.2,
+  // To make scroll from bottom to top
+  inverse: false,
   // To show the loader when the limit reached while there is feaching in progress
   isLoading: false,
   // To show the loader or hide it
@@ -279,8 +282,6 @@ InfiniteScroll.defaultProps = {
     dataTargetKey: 'items',
     // total items from server in order to calculate isDataFinished automatically 
     totalCountProp: 'totalCount',
-    // to add custom query
-    query: '',
     // initial request page, sometimes it starts from 0 or 1 
     // it depends on your endpoint configuration
     page: 0,
