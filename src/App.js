@@ -30,6 +30,15 @@ class App extends React.Component {
       <React.Fragment>
         <InfiniteScroll 
           height={500}
+          // inverse
+          // debug
+          scrollThreshold={.1}
+          // In case of Basic usage ( uncomment the following 3 lines and comment async object)
+          // isLoading={isLoading}
+
+          // isDataFinished={count === 6}
+          // onLimitReached={this.onLimitReached}
+          // In case of Async usage
           async={{ 
             configs: {
               url: 'https://api.pexels.com/v1/curated',
@@ -42,15 +51,15 @@ class App extends React.Component {
             pageSizeProp: 'per_page',
             pageSize: 80,
             page: 98,
-           }}
-          isLoading={isLoading}
-          // inverse
-          debug
-          // isDataFinished={count === 2}
-          onLimitReached={this.onLimitReached}
-          scrollThreshold={.1}
+          }}
+
           render={(response) => response.data.map((item, i) => (
-            <div key={item.photographer + i} style={{ height: 50, border: '1px solid red', marginBottom: 10 }}>{item.photographer}</div>
+            <div 
+              key={i}
+              style={{ height: 50, border: '1px solid red', marginBottom: 10, minHeight: 50 }}
+            >
+                {item.photographer}
+            </div>
           ))}
         />
       </React.Fragment>

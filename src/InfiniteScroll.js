@@ -80,7 +80,7 @@ class InfiniteScroll extends React.Component {
     const { onLimitReached } = this.props;
     const { scrollHeight, scrollTop, clientHeight } = this.scrollableWrapper;
     const scrollOffset = scrollHeight - (Math.abs(scrollTop) + clientHeight);
-    
+
     if(
       (scrollOffset < this.scrollLimit) 
       && 
@@ -248,54 +248,35 @@ InfiniteScroll.propTypes = {
 };
 
 InfiniteScroll.defaultProps = {
-  // height of the scrollable container by default will be 100vh
-  // you can change it to any value to control it
   height: '100vh',
-  // wrapper className
   className: '',
-  // It's used to calculate the distance in which you will fetch the data again using onLimitReached()
-  // and triger loading state to show loader
+
   scrollThreshold: 0.2,
-  // To make scroll from bottom to top
-  inverse: false,
-  // To show the loader when the limit reached while there is feaching in progress
-  isLoading: false,
-  // To show the loader or hide it
-  enableLoader: true,
-  // To control wheather there is a data to fetch or not 
-  // if true -----> onLimitReached() will not be called
-  isDataFinished: false,
-  // Loader indicator
-  loader: <h3 style={{color: 'red'}}>isLoading...</h3>,
-  // used to log the state and props
+
   debug: false,
-  // It used for advanced usage when ur data and pagination relies on the server 
-  // and you don't want to handle the updation everytime
+  inverse: false,
+  isLoading: false,
+  enableLoader: true,
+  isDataFinished: false,
+
+  loader: <h3 style={{color: 'red'}}>isLoading...</h3>,
+
   async: {
-    // axios request configs like (method, headers, bearer, ...etc)
     configs: {
       method: 'GET',
-      // The endpoint you want to target
       url: '',
     },
-    // Key to target the data from response in order to iterate over
-    dataTargetKey: 'items',
-    // total items from server in order to calculate isDataFinished automatically 
-    totalCountProp: 'totalCount',
-    // initial request page, sometimes it starts from 0 or 1 
-    // it depends on your endpoint configuration
-    page: 0,
-    // number of rows you need per request or per page
-    pageSize: 40,
-    // page prop to send it as a query like, endpoint?page=3
+
     pageProp: 'page',
-    // page size prop to send it as a query like, endpoint?page=3&pageSize=20
+    dataTargetKey: 'items',
     pageSizeProp: 'pageSize',
+    totalCountProp: 'totalCount',
+
+    pageSize: 20,
+    page: 0,
   },
-  // Alternative for children prop
+
   render() {},
-  // will be fired when 
-  // isDataFinished = false and scrollOffsetBottom < calculated scrollLimit based on scrollThreshold
   onLimitReached() {},
 };
 
