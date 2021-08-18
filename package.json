@@ -1,6 +1,6 @@
 {
   "name": "@tamkeentech/react-infinite-scroll",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Mohammed Saber Mohammed",
   "description": "Lightweight scroll controller library for React",
   "main": "dist/InfiniteScroll.js",
@@ -24,7 +24,7 @@
   "scripts": {
     "start": "react-scripts start",
     "deploy": "gh-pages -d build",
-    "publish:npm": "rm -rf dist && mkdir dist && babel src -d dist --copy-files"
+    "publish:npm": "rm -rf dist && mkdir dist && babel src -d dist --copy-files && npm publish --access=public"
   },
   "dependencies": {
     "@babel/core": "^7.15.0",

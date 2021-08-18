@@ -116,20 +116,24 @@ className        | any                | ''               | wrapper className
 scrollThreshold  | number 0 to 1      | 0.2              | calculate the distance in which you will fetch the data see **Notes** section to know it's calculated
 inverse          | boolean            | false            | To make scroll from bottom to top and viceversa
 enableLoader     | boolean            | true             | To show the loader or hide it
-loader           | React.Component    | 'isLoading....'  | To show the loader when the limit reached while there is feaching in progress
+loader           | React.Component    | 'isLoading....'  | Loader indicator
 debug            | boolean            | false            | used to log the **state, props, api call(success, error, distance at which the onScroll callback will work again, and more)**
 render           | function           | () {}            | function that returns the children
 
+
 _**Basic usage Props**_
-**name**         | **type**    | **defaultValue** | **description**
------------------|-------------|------------------|--------------------
-isDataFinished   | boolean     | false            | To control wheather there is a data to fetch or not, if **true** -----> onLimitReached() will not be called
-onLimitReached   | function    | () {}            | will be fired when **isDataFinished = false** and scrollOffsetBottom < calculated scrollLimit based on scrollThreshold
+**name**         | **type**    | **defaultValue** | **Required** | **description**
+-----------------|-------------|------------------|--------------|-----------------
+isLoading        | boolean     | false            | true         | To show the loader when the limit reached while there is feaching in progress, **to avoid infinite loop of fetching data as well**
+isDataFinished   | boolean     | false            | true         | To control wheather there is a data to fetch or not, if **true** -----> onLimitReached() will not be called
+onLimitReached   | function    | () {}            | true         | will be fired when **isDataFinished = false** and scrollOffsetBottom < calculated scrollLimit based on scrollThreshold
+
 
 _**Async usage Props**_
 **name**  | **type**    | **defaultValue** | **description**
 ----------|-------------|------------------|--------------------
 async     | object      | {}               | It used for advanced usage when ur data and pagination relies on the server **see the below props to know what you have to provide**
+
 
 _async object props_
 **name**        | **type**    | **defaultValue** | **Required** | **description**
